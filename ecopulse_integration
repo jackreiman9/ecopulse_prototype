@@ -1,0 +1,80 @@
+const EcoPulseQuiz = () => {
+  // Previous state variables remain...
+  const [loading, setLoading] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [percentile, setPercentile] = useState(null);
+
+  const handleSubmitResults = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          score: calculateScore(),
+          answers
+        }),
+      });
+      
+      const data = await response.json();
+      setLeaderboard(data.leaderboard);
+      setPercentile(data.percentile);
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update results page render
+  if (showResults) {
+    const score = calculateScore();
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          {/* Previous content remains... */}
+          
+          {percentile && (
+            <p className="text-md text-gray-600">
+              You scored better than {percentile}% of other users!
+            </p>
+          )}
+          
+          {leaderboard.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4">Top Performers</h3>
+              <div className="space-y-2">
+                {leaderboard.map((user, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-green-600">#{index + 1}</span>
+                      <span>{user.name}</span>
+                    </div>
+                    <span className="font-semibold">{user.score} points</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmitResults();
+          }} className="space-y-4">
+            {/* Form content remains the same... */}
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Rest of component remains the same...
+};
