@@ -1,0 +1,68 @@
+// server.js
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+const app = express();
+app.use(express.json());
+
+// Quiz results endpoint
+app.post('/api/results', async (req, res) => {
+  const { name, email, score, answers } = req.body;
+  
+  const result = await prisma.quizResult.create({
+    data: {
+      name,
+      email,
+      score,
+      answers: JSON.stringify(answers),
+      timestamp: new Date()
+    }
+  });
+  
+  // Calculate percentile
+  const allScores = await prisma.quizResult.findMany({
+    select: { score: true }
+  });
+  
+  const belowScore = allScores.filter(s => s.score < score).length;
+  const percentile = Math.round((belowScore / allScores.length) * 100);
+  
+  // Get leaderboard
+  const leaderboard = await prisma.quizResult.findMany({
+    select: {
+      name: true,
+      score: true
+    },
+    orderBy: {
+      score: 'desc'
+    },
+    take: 5
+  });
+
+  res.json({
+    result,
+    percentile,
+    leaderboard
+  });
+});
+
+// Schema for Prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model QuizResult {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  score     Int
+  answers   String   // JSON string of answers
+  timestamp DateTime @default(now())
+}
