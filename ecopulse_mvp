@@ -1,0 +1,368 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { Trophy, Timer, Mail, Leaf, ArrowRight } from 'lucide-react';
+
+const quizQuestions = [
+  {
+    id: 1,
+    question: "How do you primarily commute?",
+    options: [
+      { text: "Walk/Bike", score: 10 },
+      { text: "Public Transport", score: 5 },
+      { text: "Electric Vehicle", score: 3 },
+      { text: "Carpool", score: 0 },
+      { text: "Drive Alone", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "high"
+  },
+  {
+    id: 2,
+    question: "What's your approach to food waste?",
+    options: [
+      { text: "Compost everything possible", score: 10 },
+      { text: "Minimize waste + some composting", score: 5 },
+      { text: "Try to minimize waste", score: 0 },
+      { text: "Occasionally think about it", score: -3 },
+      { text: "Don't track waste", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "medium"
+  },
+  {
+    id: 3,
+    question: "How do you manage home energy use?",
+    options: [
+      { text: "Solar/renewable + efficient appliances", score: 10 },
+      { text: "Energy-efficient appliances only", score: 5 },
+      { text: "Sometimes monitor usage", score: 0 },
+      { text: "Basic awareness", score: -3 },
+      { text: "Don't track usage", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "high"
+  },
+  {
+    id: 4,
+    question: "What's your approach to single-use plastics?",
+    options: [
+      { text: "Completely avoid them", score: 10 },
+      { text: "Use alternatives when possible", score: 5 },
+      { text: "Sometimes use reusables", score: 0 },
+      { text: "Rarely think about it", score: -3 },
+      { text: "Use regularly", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "medium"
+  },
+  {
+    id: 5,
+    question: "How do you handle water conservation?",
+    options: [
+      { text: "Multiple water-saving systems", score: 10 },
+      { text: "Basic water-saving devices", score: 5 },
+      { text: "Try to be mindful", score: 0 },
+      { text: "Occasional awareness", score: -3 },
+      { text: "No conservation efforts", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "medium"
+  },
+  {
+    id: 6,
+    question: "What's your diet's environmental impact?",
+    options: [
+      { text: "Fully plant-based", score: 10 },
+      { text: "Mostly plant-based", score: 5 },
+      { text: "Flexitarian", score: 0 },
+      { text: "Regular meat consumption", score: -3 },
+      { text: "Heavy meat consumption", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "high"
+  },
+  {
+    id: 7,
+    question: "How do you manage electronic waste?",
+    options: [
+      { text: "Repair + proper recycling", score: 10 },
+      { text: "Some repair + recycling", score: 5 },
+      { text: "Basic recycling", score: 0 },
+      { text: "Occasional consideration", score: -3 },
+      { text: "No special handling", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "low"
+  },
+  {
+    id: 8,
+    question: "How do you handle heating/cooling?",
+    options: [
+      { text: "Efficient system + smart controls", score: 10 },
+      { text: "Programmable thermostat", score: 5 },
+      { text: "Manual temperature control", score: 0 },
+      { text: "Minimal consideration", score: -3 },
+      { text: "No energy consideration", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "high"
+  },
+  {
+    id: 9,
+    question: "How do you engage with environmental issues?",
+    options: [
+      { text: "Active in multiple initiatives", score: 10 },
+      { text: "Regular involvement", score: 5 },
+      { text: "Occasional participation", score: 0 },
+      { text: "Minimal engagement", score: -3 },
+      { text: "No engagement", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "low"
+  },
+  {
+    id: 10,
+    question: "What's your shopping habit for clothes?",
+    options: [
+      { text: "Primarily second-hand/sustainable", score: 10 },
+      { text: "Mix of new and second-hand", score: 5 },
+      { text: "Some conscious purchases", score: 0 },
+      { text: "Occasional fast fashion", score: -3 },
+      { text: "Mainly fast fashion", score: -5 },
+      { text: "Not Applicable", score: 0 }
+    ],
+    impact: "medium"
+  }
+];
+
+const getRecommendations = (answers) => {
+  const impactAreas = [];
+  
+  Object.entries(answers).forEach(([questionIndex, score]) => {
+    if (score < 0) {
+      const question = quizQuestions[questionIndex];
+      impactAreas.push({
+        area: question.question,
+        impact: question.impact,
+        score: score
+      });
+    }
+  });
+  
+  const sortedAreas = impactAreas.sort((a, b) => {
+    const impactOrder = { high: 3, medium: 2, low: 1 };
+    if (impactOrder[b.impact] !== impactOrder[a.impact]) {
+      return impactOrder[b.impact] - impactOrder[a.impact];
+    }
+    return a.score - b.score;
+  });
+
+  const topThree = sortedAreas.slice(0, 3);
+  
+  return topThree.map(area => {
+    switch(area.impact) {
+      case 'high':
+        return `High Impact: Consider improving your ${area.area.toLowerCase()} habits for maximum environmental benefit.`;
+      case 'medium':
+        return `Medium Impact: Work on ${area.area.toLowerCase()} to boost your eco-score.`;
+      case 'low':
+        return `Quick Win: Enhance your ${area.area.toLowerCase()} practices for easy improvements.`;
+      default:
+        return '';
+    }
+  });
+};
+
+const tiers = [
+  { name: "Eco Champion", minScore: 50, color: "bg-emerald-500", description: "Leading the way in sustainable living!" },
+  { name: "Sustainability Warrior", minScore: 25, color: "bg-green-500", description: "Making significant eco-friendly choices" },
+  { name: "Green Explorer", minScore: 0, color: "bg-lime-500", description: "Building sustainable habits" },
+  { name: "Eco Learner", minScore: -25, color: "bg-yellow-500", description: "Starting your sustainability journey" },
+  { name: "Sustainability Starter", minScore: -50, color: "bg-orange-500", description: "Taking first steps toward sustainability" }
+];
+
+const IntroScreen = ({ onStart, setName }) => (
+  <Card className="w-full max-w-2xl mx-auto">
+    <CardContent className="p-8 text-center">
+      <Leaf className="w-16 h-16 mx-auto mb-6 text-green-500" />
+      <h1 className="text-3xl font-bold mb-4">Welcome to EcoPulse</h1>
+      <p className="text-lg mb-8">Discover your sustainability score and join our eco-friendly community!</p>
+      
+      <div className="space-y-6 max-w-md mx-auto">
+        <Input 
+          placeholder="Enter your name"
+          onChange={(e) => setName(e.target.value)}
+          className="text-center"
+          required
+        />
+        <Button 
+          onClick={onStart}
+          className="w-full"
+          size="lg"
+        >
+          Start Quiz <ArrowRight className="ml-2 w-4 h-4" />
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const EcoPulseQuiz = () => {
+  const [showIntro, setShowIntro] = useState(true);
+  const [name, setName] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showResults, setShowResults] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const startQuiz = () => {
+    if (name.trim()) {
+      setShowIntro(false);
+    }
+  };
+
+  const progress = (currentQuestion / quizQuestions.length) * 100;
+
+  const handleAnswer = (score) => {
+    setAnswers({ ...answers, [currentQuestion]: score });
+    if (currentQuestion < quizQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  const calculateScore = () => {
+    return Object.values(answers).reduce((a, b) => a + b, 0);
+  };
+
+  const TierVisualization = ({ score }) => (
+    <div className="space-y-4 mb-8">
+      <h3 className="text-xl font-bold mb-4">Sustainability Tiers</h3>
+      {tiers.map((tier) => (
+        <div 
+          key={tier.name}
+          className={`p-4 rounded-lg ${
+            score >= tier.minScore ? tier.color : 'bg-gray-200'
+          } ${score >= tier.minScore ? 'text-white' : 'text-gray-600'}`}
+        >
+          <div className="flex justify-between items-center">
+            <span className="font-bold">{tier.name}</span>
+            <span>{tier.minScore}+ points</span>
+          </div>
+          <p className="text-sm mt-1">{tier.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (showIntro) {
+    return <IntroScreen onStart={startQuiz} setName={setName} />;
+  }
+
+  if (submitted) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-green-500" />
+          <h2 className="text-2xl font-bold mb-4">Welcome to EcoPulse, {name}!</h2>
+          <p className="text-lg mb-4">
+            We'll send updates about new challenges and rewards to {email}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (showResults) {
+    const score = calculateScore();
+    const currentTier = tiers.find(tier => score >= tier.minScore) || tiers[tiers.length - 1];
+    const recommendations = getRecommendations(answers);
+
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center mb-8">
+            <Trophy className="w-16 h-16 mx-auto mb-4 text-green-500" />
+            <h2 className="text-2xl font-bold mb-2">Hi {name}!</h2>
+            <p className="text-xl mb-2">Your EcoPulse Score: {score}</p>
+            <p className="text-lg text-green-600 font-semibold mb-4">
+              Current Tier: {currentTier.name}
+            </p>
+          </div>
+
+          <TierVisualization score={score} />
+
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-4">Top Impact Recommendations</h3>
+            <ul className="space-y-2">
+              {recommendations.map((rec, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <Leaf className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
+                  <span>{rec}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            setSubmitted(true);
+          }} className="space-y-4">
+            <h3 className="text-lg font-semibold">Stay Updated!</h3>
+            <p className="text-sm text-gray-600">
+              Join our community to track your progress and earn rewards.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1"
+              />
+              <Button type="submit">
+                Join
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="space-y-4">
+          <Progress value={progress} className="w-full" />
+          <span className="text-sm text-gray-600">
+            Question {currentQuestion + 1} of {quizQuestions.length}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <h2 className="text-xl font-semibold mb-6">{quizQuestions[currentQuestion].question}</h2>
+        <div className="space-y-3">
+          {quizQuestions[currentQuestion].options.map((option, index) => (
+            <Button
+              key={index}
+              onClick={() => handleAnswer(option.score)}
+              variant="outline"
+              className="w-full text-left justify-start h-auto py-3"
+            >
+              {option.text}
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default EcoPulseQuiz;
